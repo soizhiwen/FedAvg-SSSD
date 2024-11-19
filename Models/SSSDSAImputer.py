@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
 from Models.S4Model import S4, LinearActivation
-from Utils.util import calc_diffusion_step_embedding
+from Models.utils import calc_diffusion_step_embedding
 
 
 def swish(x):
