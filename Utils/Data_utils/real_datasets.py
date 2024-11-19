@@ -5,10 +5,7 @@ import pandas as pd
 
 from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import Dataset
-from Models.interpretable_diffusion.model_utils import (
-    normalize_to_neg_one_to_one,
-    unnormalize_to_zero_to_one,
-)
+from Models.utils import normalize_to_neg_one_to_one, unnormalize_to_zero_to_one
 from Utils.masking_utils import noise_mask
 
 
