@@ -11,12 +11,11 @@ import numpy as np
 import numpy.random as npr
 import flwr as fl
 from flwr.common import NDArrays, Scalar
-from calflops import calculate_flops
 
 from engine.solver import Trainer
-from Models.interpretable_diffusion.model_utils import unnormalize_to_zero_to_one
+from Models.imputers.SSSDS4Imputer import SSSDS4Imputer
+from Models.imputers.utils import unnormalize_to_zero_to_one
 from Data.build_dataloader import build_dataloader_fed
-from Utils.io_utils import instantiate_from_config
 from Federated.utils import (
     load_data_partitions,
     write_csv,
@@ -68,8 +67,7 @@ class FlowerClient(fl.client.NumPyClient):
         )
 
         # Initialize model
-        model = instantiate_from_config(config["model"]).to(args.device)
-        self.model_params_len = len(model.state_dict().values())
+        model = SSSDS4Imputer(**config["model"]).to(args.device)
 
         self.trainer = Trainer(
             config=config,
@@ -79,36 +77,22 @@ class FlowerClient(fl.client.NumPyClient):
         )
 
     def get_parameters(self):
-        model_params, ema_params = [], []
+        parameters = []
         param_bytes = 0
         for _, val in self.trainer.model.state_dict().items():
-            model_params.append(val.cpu().numpy())
-            param_bytes += model_params[-1].nbytes
+            parameters.append(val.cpu().numpy())
+            param_bytes += parameters[-1].nbytes
 
-        for _, val in self.trainer.ema.state_dict().items():
-            ema_params.append(val.cpu().numpy())
-            param_bytes += ema_params[-1].nbytes
-
-        return model_params + ema_params, param_bytes
+        return parameters, param_bytes
 
     def set_parameters(self, parameters: NDArrays) -> None:
-        model_params = parameters[: self.model_params_len]
-        params_dict = zip(self.trainer.model.state_dict().keys(), model_params)
+        params_dict = zip(self.trainer.model.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
         self.trainer.model.load_state_dict(state_dict, strict=True)
 
         param_bytes = 0
         for _, val in self.trainer.model.state_dict().items():
             param_bytes += val.cpu().numpy().nbytes
-
-        ema_params = parameters[self.model_params_len :]
-        if ema_params:
-            params_dict = zip(self.trainer.ema.state_dict().keys(), ema_params)
-            state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
-            self.trainer.ema.load_state_dict(state_dict, strict=True)
-
-            for _, val in self.trainer.ema.state_dict().items():
-                param_bytes += val.cpu().numpy().nbytes
 
         return param_bytes
 
@@ -175,17 +159,6 @@ class FlowerClient(fl.client.NumPyClient):
                 synth.reshape(-1, feat_dim)
             ).reshape(synth.shape)
             np.save(f"{synth_dir}/{self.filename}.npy", unnorm_synth)
-
-            # Compute FLOPs, MACs and Params
-            input_shape = tuple(next(iter(self.dl_info["dataloader"])).shape)
-            flops, macs, params = calculate_flops(
-                model=self.trainer.model,
-                input_shape=input_shape,
-                print_results=False,
-                output_as_string=False,
-            )
-            model_metrics = {"flops": flops, "macs": macs, "params": params}
-            self.write_client_results(model_metrics, server_round)
 
             # Compute metrics for all features
             metrics = {}

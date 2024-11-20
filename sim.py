@@ -9,10 +9,11 @@ warnings.filterwarnings("ignore")
 import torch
 import flwr as fl
 
+from Models.imputers.SSSDS4Imputer import SSSDS4Imputer
 from Federated.server import get_fedavg_fn
 from Federated.client import get_client_fn
 from Federated.utils import plot_metrics, increment_path
-from Utils.io_utils import load_yaml_config, instantiate_from_config, seed_everything
+from Utils.io_utils import load_yaml_config, seed_everything
 
 
 def parse_args():
@@ -102,7 +103,7 @@ def main():
         seed_everything(args.seed, args.cudnn_deterministic)
 
     args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = instantiate_from_config(config["model"]).to(args.device)
+    model = SSSDS4Imputer(**config["model"]).to(args.device)
     model_parameters = [val.cpu().numpy() for _, val in model.state_dict().items()]
 
     strategy = get_fedavg_fn(args.num_clients, model_parameters)

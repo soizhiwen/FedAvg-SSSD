@@ -158,7 +158,7 @@ def sampling(
     assert len(Sigma) == T
     assert len(size) == 3
 
-    print("begin sampling, total number of reverse steps = %s" % T)
+    # print("begin sampling, total number of reverse steps = %s" % T)
 
     x = std_normal(size)
 
