@@ -1,43 +1,28 @@
+diffusion_config:
+  T: 200
+  beta_0: 0.0001
+  beta_T: 0.02
+
 model:
-  target: Models.interpretable_diffusion.gaussian_diffusion.Diffusion_TS
-  params:
-    seq_length: 24
-    feature_size: 7
-    n_layer_enc: 3
-    n_layer_dec: 2
-    d_model: 64  # 4 X 16
-    timesteps: 500
-    sampling_timesteps: 500
-    loss_type: 'l1'
-    beta_schedule: 'cosine'
-    n_heads: 4
-    mlp_hidden_times: 4
-    attn_pd: 0.0
-    resid_pd: 0.0
-    kernel_size: 1
-    padding_size: 0
+  in_channels: 7
+  out_channels: 7
+  num_res_layers: 8
+  res_channels: 32
+  skip_channels: 32
+  diffusion_step_embed_dim_in: 16
+  diffusion_step_embed_dim_mid: 64
+  diffusion_step_embed_dim_out: 64
+  s4_lmax: 24
+  s4_d_state: 16
+  s4_dropout: 0.0
+  s4_bidirectional: 1
+  s4_layernorm: 1
 
 solver:
-  base_lr: 1.0e-5
-  max_epochs: 18000
   results_folder: ./Checkpoints_etth
-  gradient_accumulate_every: 2
-  save_cycle: 1800  # max_epochs // 10
-  ema:
-    decay: 0.995
-    update_interval: 10
-  
-  scheduler:
-    target: engine.lr_sch.ReduceLROnPlateauWithWarmup
-    params:
-      factor: 0.5
-      patience: 4000
-      min_lr: 1.0e-5
-      threshold: 1.0e-1
-      threshold_mode: rel
-      warmup_lr: 8.0e-4
-      warmup: 500 
-      verbose: False
+  n_iters: 18000
+  learning_rate: 2.0e-4
+  only_generate_missing: 0
 
 dataloader:
   target: Utils.Data_utils.real_datasets.CustomDataset
@@ -51,10 +36,6 @@ dataloader:
     seed: 123
     style: separate
     distribution: geometric
-  coefficient: 1.0e-2
-  step_size: 5.0e-2
-  sampling_steps: 200
 
   batch_size: 128
-  sample_size: 256
   shuffle: True
