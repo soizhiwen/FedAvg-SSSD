@@ -58,7 +58,7 @@ class Trainer(object):
             for batch in self.dl:
                 batch = batch.to(self.device)
                 batch = batch.permute(0, 2, 1)
-                mask = torch.ones_like(batch)
+                mask = torch.zeros_like(batch)
                 loss_mask = ~mask.bool()
 
                 assert batch.size() == mask.size() == loss_mask.size()

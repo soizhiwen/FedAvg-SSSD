@@ -6,7 +6,7 @@ diffusion_config:
 model:
   in_channels: 14
   out_channels: 14
-  num_res_layers: 8
+  num_res_layers: 4
   res_channels: 32
   skip_channels: 32
   diffusion_step_embed_dim_in: 16
@@ -20,9 +20,9 @@ model:
 
 solver:
   results_folder: ./Checkpoints_mujoco
-  n_iters: 14000
+  n_iters: 30000
   learning_rate: 2.0e-4
-  only_generate_missing: 0
+  only_generate_missing: 1
 
 dataloader:
   target: Utils.Data_utils.real_datasets.CustomDataset

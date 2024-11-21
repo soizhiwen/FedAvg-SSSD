@@ -20,9 +20,9 @@ model:
 
 solver:
   results_folder: ./Checkpoints_stock
-  n_iters: 10000
+  n_iters: 20000
   learning_rate: 2.0e-4
-  only_generate_missing: 0
+  only_generate_missing: 1
 
 dataloader:
   target: Utils.Data_utils.real_datasets.CustomDataset
